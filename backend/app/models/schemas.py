@@ -28,6 +28,9 @@ class ShiftData(BaseModel):
             end_h, end_m = map(int, self.end_time.split(":"))
             start_minutes = start_h * 60 + start_m
             end_minutes = end_h * 60 + end_m
+            # Handle shifts that cross midnight (e.g., 17:30 - 00:00)
+            if end_minutes < start_minutes:
+                end_minutes += 24 * 60  # Add 24 hours
             return (end_minutes - start_minutes) / 60
         except (ValueError, AttributeError):
             return 0.0

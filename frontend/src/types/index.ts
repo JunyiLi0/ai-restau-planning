@@ -82,7 +82,11 @@ export function getShiftHours(shift: ShiftData): number {
     const [startH, startM] = shift.start_time.split(':').map(Number);
     const [endH, endM] = shift.end_time.split(':').map(Number);
     const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
+    let endMinutes = endH * 60 + endM;
+    // Handle shifts that cross midnight (e.g., 17:30 - 00:00)
+    if (endMinutes < startMinutes) {
+      endMinutes += 24 * 60; // Add 24 hours
+    }
     return (endMinutes - startMinutes) / 60;
   } catch {
     return 0;

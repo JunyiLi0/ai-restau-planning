@@ -5,33 +5,42 @@ from app.core.ai_client import get_openai_client
 from app.models.schemas import WeekPlanning, EmployeeWeekSchedule, DaySchedule, ShiftData
 
 
-SYSTEM_PROMPT = """You are an AI assistant specialized in restaurant employee scheduling.
-You help create and modify weekly work schedules for restaurant staff.
+SYSTEM_PROMPT = """Tu es un assistant IA spécialisé dans la planification des horaires des employés de restaurant.
+Tu aides à créer et modifier les plannings hebdomadaires du personnel.
 
-When creating or modifying schedules, consider:
-- Each day has two shifts: afternoon and evening
-- For each shift, track: hours worked and meals eaten
-- Typical afternoon shift: 11:00-15:00 (4 hours)
-- Typical evening shift: 18:00-23:00 (5 hours)
-- Employees typically get 1 meal per shift worked
+Règles pour les horaires:
+- Chaque jour a deux services: midi (afternoon) et soir (evening)
+- Pour chaque service, tu dois spécifier: start_time, end_time (format "HH:MM"), et meals (nombre de repas)
+- Service midi typique: 10:30-15:00
+- Service soir typique: 17:30-23:00 (peut aller jusqu'à 00:00 pour les samedis)
+- Si un employé ne travaille pas un service, utiliser start_time: null et end_time: null
+- Chaque employé qui travaille un service a droit à 1 repas par service
 
-Always respond with valid JSON in the following format:
+Réponds TOUJOURS avec du JSON valide dans ce format exact:
 {
     "week_number": <int>,
     "year": <int>,
     "employees": [
         {
-            "name": "<string>",
-            "monday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "tuesday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "wednesday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "thursday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "friday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "saturday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}},
-            "sunday": {"afternoon": {"hours": <float>, "meals": <int>}, "evening": {"hours": <float>, "meals": <int>}}
+            "name": "NOM Prénom",
+            "monday": {
+                "afternoon": {"start_time": "10:30", "end_time": "15:00", "meals": 1},
+                "evening": {"start_time": "17:30", "end_time": "23:00", "meals": 1}
+            },
+            "tuesday": {
+                "afternoon": {"start_time": null, "end_time": null, "meals": 0},
+                "evening": {"start_time": "18:00", "end_time": "23:00", "meals": 1}
+            },
+            ... (pour chaque jour de la semaine: monday, tuesday, wednesday, thursday, friday, saturday, sunday)
         }
     ]
 }
+
+Notes importantes:
+- Les heures doivent être au format "HH:MM" (ex: "10:30", "17:30", "00:00")
+- Si pas de travail sur un service: start_time: null, end_time: null, meals: 0
+- meals = 1 si l'employé travaille le service, 0 sinon
+- Les noms doivent être au format "NOM Prénom" (ex: "DUPONT Jean")
 """
 
 
@@ -52,15 +61,15 @@ class AIPlanner:
     ) -> WeekPlanning:
         client = self._get_client()
 
-        user_prompt = f"""Create a weekly employee schedule for week {week_number} of {year}.
+        user_prompt = f"""Crée un planning hebdomadaire des employés pour la semaine {week_number} de {year}.
 
-Instructions from the user:
+Instructions de l'utilisateur:
 {instructions}
 
-Generate the schedule as JSON."""
+Génère le planning au format JSON avec les plages horaires (start_time, end_time)."""
 
         response = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
@@ -80,16 +89,16 @@ Generate the schedule as JSON."""
 
         current_json = current_planning.model_dump_json(indent=2)
 
-        user_prompt = f"""Here is the current employee schedule:
+        user_prompt = f"""Voici le planning actuel des employés:
 {current_json}
 
-Please modify this schedule according to these instructions:
+Modifie ce planning selon ces instructions:
 {instructions}
 
-Return the complete updated schedule as JSON."""
+Retourne le planning complet mis à jour au format JSON."""
 
         response = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
@@ -111,15 +120,15 @@ Return the complete updated schedule as JSON."""
         if current_planning:
             context = f"\n\nCurrent schedule:\n{current_planning.model_dump_json(indent=2)}"
 
-        user_prompt = f"""User message: {message}{context}
+        user_prompt = f"""Message de l'utilisateur: {message}{context}
 
-If the user is asking to create or modify a schedule, respond with the JSON schedule.
-If the user is asking a question, respond conversationally but include any schedule changes as JSON if applicable.
+Si l'utilisateur demande de créer ou modifier un planning, réponds avec le planning JSON.
+Si l'utilisateur pose une question, réponds de manière conversationnelle mais inclus les modifications de planning en JSON si applicable.
 
-If you're providing a schedule, make sure to include it as valid JSON wrapped in ```json``` code blocks."""
+Si tu fournis un planning, assure-toi de l'inclure en JSON valide dans un bloc ```json```."""
 
         response = client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
@@ -150,20 +159,20 @@ If you're providing a schedule, make sure to include it as valid JSON wrapped in
 
         tables_str = json.dumps(pdf_tables, indent=2) if pdf_tables else "No tables found"
 
-        user_prompt = f"""Extract employee scheduling information from the following PDF content and create a weekly schedule.
+        user_prompt = f"""Extrais les informations de planning des employés du contenu PDF suivant et crée un planning hebdomadaire.
 
-PDF Text:
+Texte du PDF:
 {pdf_text}
 
-PDF Tables:
+Tableaux du PDF:
 {tables_str}
 
-{f'Additional instructions: {additional_instructions}' if additional_instructions else ''}
+{f'Instructions supplémentaires: {additional_instructions}' if additional_instructions else ''}
 
-Create a complete weekly schedule based on this information. If some data is missing, make reasonable assumptions for a restaurant schedule."""
+Crée un planning complet basé sur ces informations. Si des données manquent, fais des hypothèses raisonnables pour un planning de restaurant."""
 
         response = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
@@ -184,14 +193,19 @@ Create a complete weekly schedule based on this information. If some data is mis
             for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
                 if day in emp_data:
                     day_data = emp_data[day]
+                    afternoon_data = day_data.get("afternoon", {})
+                    evening_data = day_data.get("evening", {})
+
                     day_schedule = DaySchedule(
                         afternoon=ShiftData(
-                            hours=float(day_data.get("afternoon", {}).get("hours", 0)),
-                            meals=int(day_data.get("afternoon", {}).get("meals", 0)),
+                            start_time=afternoon_data.get("start_time") or "",
+                            end_time=afternoon_data.get("end_time") or "",
+                            meals=int(afternoon_data.get("meals", 0)),
                         ),
                         evening=ShiftData(
-                            hours=float(day_data.get("evening", {}).get("hours", 0)),
-                            meals=int(day_data.get("evening", {}).get("meals", 0)),
+                            start_time=evening_data.get("start_time") or "",
+                            end_time=evening_data.get("end_time") or "",
+                            meals=int(evening_data.get("meals", 0)),
                         ),
                     )
                     setattr(emp, day, day_schedule)

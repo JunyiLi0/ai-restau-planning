@@ -31,7 +31,7 @@ async def export_pdf(
         pdf_generator.generate_planning_pdf(store.current_planning, pdf_path)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"planning_semaine{store.current_planning.week_number}_{store.current_planning.year}_{timestamp}.pdf"
+        filename = f"planning_semaine{store.current_planning.week_number}_{timestamp}.pdf"
 
         # Add history entry
         store.add_history_entry(
@@ -69,7 +69,7 @@ async def export_excel(
         excel_handler.save_workbook(wb, excel_path)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"planning_semaine{store.current_planning.week_number}_{store.current_planning.year}_{timestamp}.xlsx"
+        filename = f"planning_semaine{store.current_planning.week_number}_{timestamp}.xlsx"
 
         # Add history entry
         store.add_history_entry(

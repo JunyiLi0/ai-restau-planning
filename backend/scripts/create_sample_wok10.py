@@ -68,7 +68,7 @@ def create_wok10_planning() -> WeekPlanning:
         ]),
         create_employee("DACKO David", [
             ("10:30-15:30", "-"),  # Lundi
-            ("-", "10:30-15:30"),  # Mardi
+            ("10:30-15:30", "-"),  # Mardi
             ("10:30-15:00", "-"),  # Mercredi
             ("-", "-"),  # Jeudi
             ("-", "-"),  # Vendredi
@@ -153,7 +153,7 @@ def create_wok10_planning() -> WeekPlanning:
             ("-", "-"),  # Mercredi
             ("10:00-14:30", "-"),  # Jeudi
             ("10:30-15:00", "-"),  # Vendredi
-            ("10:30-15:00", "17:00-00:00"),  # Samedi
+            ("10:30-15:00", "17:30-00:00"),  # Samedi
             ("-", "17:30-23:00"),  # Dimanche
         ]),
         create_employee("PEJA Naima", [
@@ -161,17 +161,17 @@ def create_wok10_planning() -> WeekPlanning:
             ("-", "-"),  # Mardi
             ("10:30-15:00", "-"),  # Mercredi
             ("10:30-15:00", "-"),  # Jeudi
-            ("18:00-23:00", "-"),  # Vendredi
-            ("10:30-15:00", "17:00-00:00"),  # Samedi
+            ("-", "18:00-23:00"),  # Vendredi
+            ("10:30-15:00", "17:30-00:00"),  # Samedi
             ("-", "17:30-23:00"),  # Dimanche
         ]),
         create_employee("SONAM Dolma", [
             ("-", "-"),  # Lundi
             ("-", "-"),  # Mardi
-            ("-", "10:00-18:30"),  # Mercredi
+            ("10:00-18:30", "-"),  # Mercredi
             ("10:30-15:00", "-"),  # Jeudi
-            ("18:00-23:00", "-"),  # Vendredi
-            ("18:00-23:00", "-"),  # Samedi
+            ("-", "18:00-23:00"),  # Vendredi
+            ("-", "18:00-23:00"),  # Samedi
             ("10:30-20:30", "-"),  # Dimanche
         ]),
         create_employee("TENZIN Sangpo", [
@@ -212,11 +212,11 @@ def create_wok10_planning() -> WeekPlanning:
         ]),
         create_employee("Mme TENZIN Pema", [
             ("-", "-"),  # Lundi
-            ("17:30-22:30", "10:00-14:30"),  # Mardi
+            ("10:00-14:30", "17:30-22:30"),  # Mardi
             ("-", "-"),  # Mercredi
-            ("-", "10:00-14:30"),  # Jeudi
-            ("17:30-22:30", "10:00-14:30"),  # Vendredi
-            ("17:30-23:00", "-"),  # Samedi
+            ("10:00-14:30", "-"),  # Jeudi
+            ("10:00-14:30", "17:30-22:30"),  # Vendredi
+            ("-", "17:30-23:00"),  # Samedi
             ("10:00-14:30", "17:30-22:30"),  # Dimanche
         ]),
         create_employee("TOGOLA Demba", [
@@ -252,7 +252,7 @@ def create_wok10_planning() -> WeekPlanning:
             ("10:30-15:00", "-"),  # Mercredi
             ("-", "-"),  # Jeudi
             ("10:30-15:00", "18:00-23:00"),  # Vendredi
-            ("10:30-15:00", "18:00-00:00"),  # Samedi
+            ("10:30-15:30", "18:30-23:30"),  # Samedi
             ("-", "-"),  # Dimanche
         ]),
         create_employee("SHEN Qinqin", [
